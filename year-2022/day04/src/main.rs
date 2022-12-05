@@ -17,6 +17,7 @@ fn main() {
 
 trait InclusiveRangeExt {
     fn contains_range(&self, other: &Self) -> bool;
+    fn overlaps(&self, other: &Self) -> bool;
 }
 
 impl<T> InclusiveRangeExt for RangeInclusive<T>
@@ -25,6 +26,10 @@ where
 {
     fn contains_range(&self, other: &Self) -> bool {
         self.contains(other.start()) && self.contains(other.end())
+    }
+
+    fn overlaps(&self, other: &Self) -> bool {
+        self.contains(other.start()) || self.contains(other.end())
     }
 }
 
@@ -49,7 +54,23 @@ fn part1(input: &str) -> usize {
 }
 
 fn part2(input: &str) -> usize {
-    0
+    input
+        .lines()
+        .map(|line| {
+            line.split(",")
+                .map(|range| {
+                    range
+                        .split("-")
+                        .map(|n| n.parse().unwrap())
+                        .collect_tuple::<(u32, u32)>()
+                        .map(|(start, end)| start..=end)
+                        .unwrap()
+                })
+                .collect_tuple::<(_, _)>()
+                .unwrap()
+        })
+        .filter(|(a, b)| a.overlaps(b) || b.overlaps(a))
+        .count()
 }
 
 #[cfg(test)]
@@ -72,6 +93,6 @@ mod tests {
     #[test]
     fn part2_works() {
         let result = part2(INPUT);
-        assert_eq!(result, 0);
+        assert_eq!(result, 4);
     }
 }
